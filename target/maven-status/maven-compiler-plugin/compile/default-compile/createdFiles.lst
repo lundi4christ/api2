@@ -1,0 +1,5 @@
+security\app\secure\SecureApplication.class
+security\app\secure\tcontroller\AuthController.class
+security\app\secure\entity\ResponseData.class
+security\app\secure\entity\RequestFromApi.class
+security\app\secure\entity\UserData.class
