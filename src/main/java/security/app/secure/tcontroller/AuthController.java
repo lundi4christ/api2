@@ -52,7 +52,7 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<dataSource> processRequestParam (@PathVariable String appid, @PathVariable String name, @PathVariable String source){
 
-        System.out.println("===== " + appid + "- " + name + "- " + source);
+        System.out.println("===== " + appid + "** " + name + "** " + source);
 
         dataSource data = new dataSource();
         data.setUsername("MYTEST");
