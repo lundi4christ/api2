@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-ui-dpl
+  labels:
+    app: spring-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-ui
+  template:
+    metadata:
+      labels:
+        app: spring-ui
+    spec:
+      containers:
+        - name: spring-ui
+          image: lundi4christ/springfront:1.4
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              ephemeral-storage: "1Gi"
+            limits:
+              ephemeral-storage: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-ui-service
+spec:
+  type: NodePort
+  selector:
+    app: spring-ui
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 80
+      nodePort: 30002
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-config
+data:
+  #datasource-url: jdbc:sqlserver://192.168.56.1;databaseName=DATATEST
+  datasource-url: jdbc:oracle:thin:@192.168.56.16:1521:ORCLCDB
+  endpoint-url: http://192.168.56.10
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: spring-secret
+type: Opaque
+data:
+  #database-user: REFUQVRFU1Q=
+  #database-pass: REFUQVRFU1Q=
+  database-user: S0FDSEFTSVVTTA==
+  database-pass: S0FDSEFTSVVTTA==
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-api-dpl
+  labels:
+    app: spring-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-api
+  template:
+    metadata:
+      labels:
+        app: spring-api
+    spec:
+      containers:
+        - name: spring-api
+          image: lundi4christ/springback:1.2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8090
+          resources:
+            requests:
+              ephemeral-storage: "1Gi"
+            limits:
+              ephemeral-storage: "2Gi"
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: datasource-url
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: spring-secret
+                  key: database-user
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spring-secret
+                  key: database-pass
+            - name: MAIN_REST_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-config
+                  key: endpoint-url
+            - name: SERVER_PORT
+              value: "8090"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kachasi-api
+spec:
+  type: NodePort
+  selector:
+    app: spring-api
+  ports:
+    - protocol: TCP
+      port: 8090
+      targetPort: 8090
+      nodePort: 30003
